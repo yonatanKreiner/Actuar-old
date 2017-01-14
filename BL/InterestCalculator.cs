@@ -3,41 +3,46 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BL.Models;
 
 namespace BL
 {
     public class InterestCalculator
     {
         double debt;
-        DateTime lawnDate;
-        DateTime calculationDate;
-        double startMadad = 9528500.96;
-        double endMadad = 33671038.31;
-        double ribitPrecentage = 265.9031;
-        double MadadDifference;
-        double ribitDifference;
-        double hazmadaRibit;
-        double sumExtra;
-        public double finalDebt;
+
+        public double inalDebt;
+        public DateTime DebtDate { get; set; }
+        public DateTime CalculationDate { get; set; }
+        public Madad Madad { get; set; }
+        public Ribit Ribit { get; set; }
+        public double RibitDefference { get; set; }
+        public double HazmadaRibit { get; set; }
+        public double Debt
+        {
+            get { return debt; }
+            set
+            {
+                debt = value;
+                RibitDefference = Ribit.NextAccumulativeRibit * debt - debt;
+                HazmadaRibit = Madad.EndValue / Madad.StartValue * RibitDefference - RibitDefference;
+                Extra = Madad.Difference + RibitDefference + HazmadaRibit;
+                FinalDebt = Extra + debt;
+            }
+        }
+        public double FinalDebt { get; set; }
+        public double Extra { get; set; }
 
         public InterestCalculator() { }
 
-        public InterestCalculator(double debt)
+        public InterestCalculator(DateTime debtDate, DateTime calculationDate, double debt)
         {
-            UpdateDebt(debt);
+            DebtDate = debtDate;
+            CalculationDate = calculationDate;
+            Madad = new Madad(DebtDate, CalculationDate, debt);
+            Ribit = new Ribit(DebtDate);
+            Debt = debt;
         }
-
-
-        public InterestCalculator(DateTime lawnDate, DateTime calculationDate) { }
-
-        public void UpdateDebt(double debt)
-        {
-            this.debt = debt;
-            MadadDifference = endMadad / startMadad * debt - debt;
-            ribitDifference = 265.8471 / 100 * debt - debt;
-            hazmadaRibit = endMadad / startMadad * ribitDifference - ribitDifference;
-            sumExtra = MadadDifference + ribitDifference + hazmadaRibit;
-            finalDebt = sumExtra + debt;
-        }
+        
     }
 }

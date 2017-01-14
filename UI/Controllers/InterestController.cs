@@ -10,28 +10,21 @@ namespace UI.Controllers
 {
     public class InterestController : ApiController
     {
-        InterestCalculator calculator = new InterestCalculator();
+        InterestCalculator calculator;
 
         // GET: api/Interest
         [HttpGet]
         public double Get()
         {
-            return calculator.finalDebt;
+            return calculator.FinalDebt;
         }
 
         // GET: api/Interest
         [HttpGet]
         public double Get(double debt)
         {
-            calculator.UpdateDebt(debt);
-            return calculator.finalDebt;
-        }
-
-        // POST: api/Interest
-        [HttpPost]
-        public void Post(double debt)
-        {
-            calculator.UpdateDebt(debt);
+            calculator = new InterestCalculator(new DateTime(1990, 2, 17), new DateTime(2016, 10, 16), debt);
+            return calculator.FinalDebt;
         }
     }
 }
