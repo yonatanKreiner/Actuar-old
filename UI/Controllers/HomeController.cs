@@ -13,6 +13,13 @@ namespace UI.Controllers
             return View();
         }
 
+        public ActionResult Interest()
+        {
+            ViewBag.Message = "Calculate your interest.";
+
+            return View();
+        }
+
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

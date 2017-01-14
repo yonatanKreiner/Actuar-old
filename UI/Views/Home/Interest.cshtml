@@ -1,0 +1,65 @@
+﻿@{
+    ViewBag.Title = "Interest";
+}
+<h2>@ViewBag.Title.</h2>
+<h3>@ViewBag.Message</h3>
+
+<script>
+    $(function () {
+        $('#dateOfDebt').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+    });
+
+    function Calculate() {
+        $.ajax({
+            type: 'GET',
+            data: {
+                debt: $('#txtDebt').val()
+            },
+            url: "/api/Interest",
+            contentType: "application/json",
+            success: function (result) {
+                $('#debt').text('worth now: ' + result);
+            },
+            error: function (err) {
+                var status = err.statusCode().status;
+
+                if (status == 400) {
+                    alert('Invalid input');
+                } else {
+                    alert('Something went wrong');
+                }
+            }
+        });
+    }
+</script>
+
+<div>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6 form-group">
+                <label for="dateOfDebt">Date of debt</label>
+                <div class='input-group date' id='dateOfDebt' style="width: 315px;">
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 form-group">
+                <label for="txtDebt">Debt</label>
+                <input type="text" class="form-control" id="txtDebt" value="" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 form-group">
+                <button class="btn btn-primary" id="submit" name="submit" onclick="Calculate()">Calculate</button>
+            </div>
+        </div>
+        <br /><br />
+        <label id="debt"></label>
+    </div>
+</div>
