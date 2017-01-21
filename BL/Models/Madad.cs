@@ -24,7 +24,18 @@ namespace BL.Models
 
         double GetDataByDate(DateTime date)
         {
-            return ExcelReader.GetMadad(date);
+            DateTime madadDate = new DateTime(date.Year, date.Month, 1);
+
+            if (date.Day < 15)
+            {
+                madadDate = madadDate.AddMonths(-2);
+            }
+            else
+            {
+                madadDate = madadDate.AddMonths(-1);
+            }
+
+            return ExcelReader.GetMadad(madadDate);
         }
     }
 }

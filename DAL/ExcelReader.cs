@@ -10,46 +10,43 @@ namespace DAL
 {
     public static class ExcelReader
     {
-        const string EXCEL_PATH = @"E:\Projects\Actuar\חוק פסיקת ריבית- 16.10.2016.xlsx";
+        static string EXCEL_PATH = @"E:\Projects\Actuar\חוק פסיקת ריבית- 16.10.2016.xlsx";
+
         const int DATES_COLUMN = 1;
         const int MADAD_COLUMN = 2;
+        const string MADAD_SHEET = "מדדים וריביות";
 
         public static double GetMadad(DateTime date)
         {
             Excel.Application xlApp = new Excel.Application();
             Excel.Workbook xlWorkbook = xlApp.Workbooks.Open(EXCEL_PATH);
-            Excel._Worksheet xlWorksheet = xlWorkbook.Sheets["מדדים וריביות"];
+            Excel._Worksheet xlWorksheet = xlWorkbook.Sheets[MADAD_SHEET];
             Excel.Range xlRange = xlWorksheet.UsedRange;
-
-            DateTime madadDate = new DateTime(date.Year, date.Month, 1);
-
-            if (date.Day < 15)
-            {
-                madadDate = madadDate.AddMonths(-2);
-            }
-            else
-            {
-                madadDate = madadDate.AddMonths(-1);
-            }
-
-            List<DateTime> dates = new List<DateTime>();
 
             for (int i = 3; i <= xlRange.Rows.Count; i++)
             {
                 if (xlRange.Cells[i, DATES_COLUMN] != null && xlRange.Cells[i, DATES_COLUMN].Value2 != null)
                 {
-                    // Converting the string in the excel cell to DateTime object
-                    if(DateTime.FromOADate(double.Parse(xlRange.Cells[i, DATES_COLUMN].Value2.ToString())) == madadDate)
+                    // Converting the string in the excel cell to DateTime object and checking if the dates equals
+                    if(DateTime.FromOADate(double.Parse(xlRange.Cells[i, DATES_COLUMN].Value2.ToString())) == date && xlRange.Cells[i, MADAD_COLUMN].Value2 != null)
                     {
+                        double madadValue;
+
+                        if (!double.TryParse(xlRange.Cells[i, MADAD_COLUMN].Value2.ToString(), out madadValue))
+                        {
+                            return 0;
+                        }
+
                         CloseExcel(xlApp, xlWorkbook, xlWorksheet, xlRange);
-                        return double.Parse(xlRange.Cells[i, MADAD_COLUMN].Value2.ToString());
+
+                        return madadValue;
                     }
                 }
             }
 
             CloseExcel(xlApp, xlWorkbook, xlWorksheet, xlRange);
 
-            return 2;   
+            return 0;   
         }
 
         static void CloseExcel(Excel.Application xlApp, Excel.Workbook xlWorkbook, Excel._Worksheet xlWorksheet, Excel.Range xlRange)
@@ -63,7 +60,7 @@ namespace DAL
             Marshal.ReleaseComObject(xlWorksheet);
 
             //close and release
-            xlWorkbook.Close();
+            xlWorkbook.Close(false);
             Marshal.ReleaseComObject(xlWorkbook);
 
             //quit and release
