@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DAL;
 
 namespace BL.Models
 {
@@ -27,12 +24,7 @@ namespace BL.Models
 
         double GetDataByDate(DateTime date)
         {
-            if (!date.Equals(new DateTime(2016, 10, 16)))
-            {
-                return 9528500.96;
-            }
-
-            return 33671038.31;
+            return ExcelReader.GetMadad(date);
         }
     }
 }
