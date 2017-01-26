@@ -24,7 +24,7 @@ namespace BL
             set
             {
                 debt = value;
-                RibitDefference = Ribit.NextAccumulativeRibit * debt - debt;
+                RibitDefference = Ribit.Difference;
                 HazmadaRibit = Madad.EndValue / Madad.StartValue * RibitDefference - RibitDefference;
                 Extra = Madad.Difference + RibitDefference + HazmadaRibit;
                 FinalDebt = Extra + debt;
@@ -40,7 +40,7 @@ namespace BL
             DebtDate = debtDate;
             CalculationDate = calculationDate;
             Madad = new Madad(DebtDate, CalculationDate, debt);
-            Ribit = new Ribit(DebtDate);
+            Ribit = new Ribit(DebtDate, debt);
             Debt = debt;
         }
         

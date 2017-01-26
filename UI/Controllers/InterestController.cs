@@ -12,18 +12,23 @@ namespace UI.Controllers
     {
         InterestCalculator calculator;
 
-        // GET: api/Interest
-        [HttpGet]
-        public double Get()
+        DateTime GetDateFromString(string date)
         {
-            return calculator.FinalDebt;
+            int year = int.Parse(date.Split('/')[2]);
+            int month = int.Parse(date.Split('/')[1]);
+            int day = int.Parse(date.Split('/')[0]);
+
+            return new DateTime(year, month, day);
         }
 
         // GET: api/Interest
         [HttpGet]
-        public double Get(double debt)
+        public double Get(double debt, string debtDate, string calculationDate)
         {
-            calculator = new InterestCalculator(new DateTime(1990, 2, 17), new DateTime(2016, 10, 16), debt);
+            DateTime debtDateTime = GetDateFromString(debtDate);
+            DateTime calculationDateTime = GetDateFromString(calculationDate);
+
+            calculator = new InterestCalculator(debtDateTime, calculationDateTime, debt);
             return calculator.FinalDebt;
         }
     }

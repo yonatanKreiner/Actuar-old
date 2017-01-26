@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DAL;
 using System.Threading.Tasks;
 
 namespace BL.Models
@@ -9,29 +10,16 @@ namespace BL.Models
     public class Ribit
     {
         public DateTime Date { get; set; }
-        public double YearlyPrecentage { get; set; }
-        public double DailyPrecentage { get; set; }
-        public double AccumulativePrecentage { get; set; }
+        public double Debt { get; set; }
+        public double TomorrowAccumulativePrecentage { get; set; }
+        public double Difference { get; set; }
 
-        public double NextAccumulativeRibit { get; set; }
-
-        public Ribit(DateTime date)
+        public Ribit(DateTime date, double debt)
         {
             Date = date;
-            NextAccumulativeRibit = 266.0152 / 100;
-            GetDataByDate();
-            CalculateRibitByYear();
-        }
-
-        void GetDataByDate()
-        {
-            YearlyPrecentage = 8;
-        }
-
-        void CalculateRibitByYear()
-        {
-            DailyPrecentage = Math.Pow((1 + YearlyPrecentage / 100), (1 / 365.25)) - 1;
-            AccumulativePrecentage = NextAccumulativeRibit * (1 + DailyPrecentage);
+            Debt = debt;
+            TomorrowAccumulativePrecentage = ExcelReader.GetDoubleValueFromExcel(ExcelReader.ExcelData.IncrementedRibit, Date.AddDays(1));
+            Difference = TomorrowAccumulativePrecentage * Debt - Debt;
         }
     }
 }

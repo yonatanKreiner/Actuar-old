@@ -9,13 +9,27 @@
         $('#dateOfDebt').datetimepicker({
             format: 'DD/MM/YYYY'
         });
+        $('#dateOfCalculation').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
     });
 
-    function Calculate() {
+    function stringToDate(dateString) {
+        dateString = dateString.split('/');
+        dateString = dateString[1] + '/' + dateString[0] + '/' + dateString[2];
+
+        return new Date(dateString);
+    }
+
+    function calculate() {
         $.ajax({
             type: 'GET',
             data: {
-                debt: $('#txtDebt').val()
+                debt: $('#txtDebt').val(),
+                //debtDate: stringToDate($('#dateOfDebtValue').val()),
+                debtDate: $('#dateOfDebtValue').val(),
+                //calculationDate: stringToDate($('#dateOfCalculationValue').val())
+                calculationDate: $('#dateOfCalculationValue').val()
             },
             url: "/api/Interest",
             contentType: "application/json",
@@ -41,7 +55,18 @@
             <div class="col-sm-6 form-group">
                 <label for="dateOfDebt">Date of debt</label>
                 <div class='input-group date' id='dateOfDebt' style="width: 315px;">
-                    <input type='text' class="form-control" />
+                    <input type='text' id='dateOfDebtValue' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 form-group">
+                <label for="dateOfDebt">Date to calculate for</label>
+                <div class='input-group date' id='dateOfCalculation' style="width: 315px;">
+                    <input type='text' id='dateOfCalculationValue' class="form-control" />
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </span>
@@ -56,7 +81,7 @@
         </div>
         <div class="row">
             <div class="col-sm-6 form-group">
-                <button class="btn btn-primary" id="submit" name="submit" onclick="Calculate()">Calculate</button>
+                <button class="btn btn-primary" id="submit" name="submit" onclick="calculate()">Calculate</button>
             </div>
         </div>
         <br /><br />

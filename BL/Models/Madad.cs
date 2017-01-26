@@ -35,7 +35,7 @@ namespace BL.Models
                 madadDate = madadDate.AddMonths(-1);
             }
 
-            return ExcelReader.GetMadad(madadDate);
+            return ExcelReader.GetDoubleValueFromExcel(ExcelReader.ExcelData.Madad, madadDate);
         }
     }
 }
