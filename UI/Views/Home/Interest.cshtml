@@ -5,14 +5,19 @@
 <h3>@ViewBag.Message</h3>
 
 <script>
+    let rows = 1;
+    const debtDateStringId = 'dateOfDebt';
+
     $(function () {
-        $('#dateOfDebt').datetimepicker({
-            format: 'DD/MM/YYYY'
-        });
-        $('#dateOfCalculation').datetimepicker({
-            format: 'DD/MM/YYYY'
-        });
+        initializeDateTime(debtDateStringId);
+        initializeDateTime('dateOfCalculation');
     });
+
+    function initializeDateTime(id) {
+        $('#' + id).datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+    }
 
     function stringToDate(dateString) {
         dateString = dateString.split('/');
@@ -47,24 +52,31 @@
             }
         });
     }
+
+    function addRow() {
+        // Copy the table row and clear the value of the input, then append the row to the end of the table
+        var debtRow = $("#debtRow").clone();
+                
+        // Clear all inputs and update id
+        debtRow.find("input").each(function () {
+            $(this).val('');
+            $(this).attr('id', $(this)[0].id + rows);
+        })
+            
+        debtRow.find('#' + debtDateStringId).attr('id', debtDateStringId + rows)
+        debtRow.attr('id', debtRow[0].id + rows);
+        debtRow.appendTo("#debts");
+
+        initializeDateTime(debtDateStringId + rows);
+        rows++;
+    }
 </script>
 
 <div>
     <div class="container">
         <div class="row">
             <div class="col-sm-6 form-group">
-                <label for="dateOfDebt">Date of debt</label>
-                <div class='input-group date' id='dateOfDebt' style="width: 315px;">
-                    <input type='text' id='dateOfDebtValue' class="form-control" />
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-6 form-group">
-                <label for="dateOfDebt">Date to calculate for</label>
+                <label for="dateOfCalculation">Date to calculate for</label>
                 <div class='input-group date' id='dateOfCalculation' style="width: 315px;">
                     <input type='text' id='dateOfCalculationValue' class="form-control" />
                     <span class="input-group-addon">
@@ -72,13 +84,30 @@
                     </span>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-6 form-group">
-                <label for="txtDebt">Debt</label>
-                <input type="text" class="form-control" id="txtDebt" value="" />
+            <div class="col-sm-6">
+                <br/>
+                <button class="btn btn-success glyphicon glyphicon-plus" onclick="addRow()"></button>
             </div>
         </div>
+
+        <div id="debts">
+            <div class="row" id="debtRow">
+                <div class="col-sm-6 form-group">
+                    <label for="dateOfDebt">Date of debt</label>
+                    <div class='input-group date' id='dateOfDebt' style="width: 315px;">
+                        <input type='text' id='dateOfDebtValue' class="form-control" />
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-sm-6 form-group">
+                    <label for="txtDebt">Debt</label>
+                    <input type="text" class="form-control" id="txtDebt" value="" />
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-sm-6 form-group">
                 <button class="btn btn-primary" id="submit" name="submit" onclick="calculate()">Calculate</button>
