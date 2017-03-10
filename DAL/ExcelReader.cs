@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace DAL
 {
-    public static class ExcelReader
+    public class ExcelReader
     {
-        static string EXCEL_PATH = @"E:\Projects\Actuar\חוק פסיקת ריבית- 16.10.2016.xlsx";
+        static string EXCEL_PATH = @"E:\Projects\Dev\Web\Actuar\חוק פסיקת ריבית- 16.10.2016.xlsx";
 
         const string MADAD_SHEET = "מדדים וריביות";
         const int MADAD_DATES_COLUMN = 1;
@@ -22,6 +18,40 @@ namespace DAL
         const int INCREMENTED_RIBIT_VALUE_COLUMN = 8;
         const int INCREMENTED_RIBIT_MINIMUM_ROW = 8;
 
+        string sheet;
+        int minimumRow;
+        int dateColumn;
+        int valueColumn;
+
+        Excel.Application xlApp;
+        Excel.Workbook xlWorkbook;
+        Excel._Worksheet xlWorksheet;
+        Excel.Range xlRange;
+        int currentDataToRead;
+        bool isOpen;
+
+        static readonly ExcelReader instance = new ExcelReader();
+
+        // Explicit static constructor to tell C# compiler
+        // not to mark type as beforefieldinit
+        static ExcelReader()
+        {
+        }
+
+        ExcelReader()
+        {
+            currentDataToRead = -1;
+            isOpen = false;
+        }
+
+        public static ExcelReader Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
         public enum ExcelData
         {
             Madad,
@@ -29,40 +59,40 @@ namespace DAL
             IncrementedRibit
         }
 
-        public static double GetDoubleValueFromExcel(ExcelData dataToFetch, DateTime date)
+        public void InitializeArgumentsForReading(ExcelData dataToFetch)
         {
-            string sheet = string.Empty;
-            int row = 0;
-            int dateColumn = 0, valueColumn = 0;
+            //if (currentDataToRead == -1 || currentDataToRead != (int)dataToFetch)
+            //{
+            //    currentDataToRead = (int)dataToFetch;
 
-            switch (dataToFetch)
-            {
-                case ExcelData.Madad:
-                    sheet = MADAD_SHEET;
-                    dateColumn = MADAD_DATES_COLUMN;
-                    valueColumn = MADAD_VALUE_COLUMN;
-                    row = MADAD_MINIMUM_ROW;
+                switch (dataToFetch)
+                {
+                    case ExcelData.Madad:
+                        sheet = MADAD_SHEET;
+                        dateColumn = MADAD_DATES_COLUMN;
+                        valueColumn = MADAD_VALUE_COLUMN;
+                        minimumRow = MADAD_MINIMUM_ROW;
 
-                    break;
-                case ExcelData.DailyRibit:
-                    break;
-                case ExcelData.IncrementedRibit:
-                    sheet = INCREMENTED_RIBIT_SHEET;
-                    dateColumn = INCREMENTED_RIBIT_DATES_COLUMN;
-                    valueColumn = INCREMENTED_RIBIT_VALUE_COLUMN;
-                    row = INCREMENTED_RIBIT_MINIMUM_ROW;
+                        break;
+                    case ExcelData.DailyRibit:
+                        break;
+                    case ExcelData.IncrementedRibit:
+                        sheet = INCREMENTED_RIBIT_SHEET;
+                        dateColumn = INCREMENTED_RIBIT_DATES_COLUMN;
+                        valueColumn = INCREMENTED_RIBIT_VALUE_COLUMN;
+                        minimumRow = INCREMENTED_RIBIT_MINIMUM_ROW;
 
-                    break;
-                default:
-                    return 0;
-            }
+                        break;
+                }
 
-            Excel.Application xlApp = new Excel.Application();
-            Excel.Workbook xlWorkbook = xlApp.Workbooks.Open(EXCEL_PATH);
-            Excel._Worksheet xlWorksheet = xlWorkbook.Sheets[sheet];
-            Excel.Range xlRange = xlWorksheet.UsedRange;
+                xlWorksheet = xlWorkbook.Sheets[sheet];
+                xlRange = xlWorksheet.UsedRange; 
+            //}
+        }
 
-            for (int i = row; i <= xlRange.Rows.Count; i++)
+        public double GetDoubleValue(DateTime date)
+        {
+            for (int i = minimumRow; i <= xlRange.Rows.Count; i++)
             {
                 if (xlRange.Cells[i, dateColumn] != null && xlRange.Cells[i, dateColumn].Value2 != null)
                 {
@@ -75,40 +105,62 @@ namespace DAL
 
                         if (!double.TryParse(xlRange.Cells[i, valueColumn].Value2.ToString(), out data))
                         {
-                            CloseExcel(xlApp, xlWorkbook, xlWorksheet, xlRange);
-
                             return 0;
                         }
-
-                        CloseExcel(xlApp, xlWorkbook, xlWorksheet, xlRange);
 
                         return data;
                     }
                 }
             }
 
-            CloseExcel(xlApp, xlWorkbook, xlWorksheet, xlRange);
-
             return 0;
         }
 
-        static void CloseExcel(Excel.Application xlApp, Excel.Workbook xlWorkbook, Excel._Worksheet xlWorksheet, Excel.Range xlRange)
+        public bool Open()
         {
-            //cleanup
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            try
+            {
+                xlApp = new Excel.Application();
+                xlWorkbook = xlApp.Workbooks.Open(EXCEL_PATH);
+                
+                isOpen = true;
+            }
+            catch
+            {
+                isOpen = true;
+            }
 
-            //release com objects to fully kill excel process from running in the background
-            Marshal.FinalReleaseComObject(xlRange);
-            Marshal.FinalReleaseComObject(xlWorksheet);
+            return isOpen;
+        }
 
-            //close and release
-            xlWorkbook.Close(0);
-            Marshal.FinalReleaseComObject(xlWorkbook);
+        public bool Close()
+        {
+            try
+            {
+                //cleanup
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
 
-            //quit and release
-            xlApp.Quit();
-            Marshal.FinalReleaseComObject(xlApp);
+                //release com objects to fully kill excel process from running in the background
+                Marshal.FinalReleaseComObject(xlRange);
+                Marshal.FinalReleaseComObject(xlWorksheet);
+
+                //close and release
+                xlWorkbook.Close(0);
+                Marshal.FinalReleaseComObject(xlWorkbook);
+
+                //quit and release
+                xlApp.Quit();
+                Marshal.FinalReleaseComObject(xlApp);
+
+                isOpen = false;
+            }
+            catch
+            {
+                isOpen = true;
+            }
+
+            return !isOpen;
         }
     }
 }

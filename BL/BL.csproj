@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InterestCalculator.cs" />
+    <Compile Include="Models\Calculation.cs" />
     <Compile Include="Models\Madad.cs" />
     <Compile Include="Models\Ribit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

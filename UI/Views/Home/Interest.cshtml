@@ -6,10 +6,17 @@
 
 <script>
     let rows = 1;
-    const debtDateStringId = 'dateOfDebt';
+    let debts = {};
+    const calculationDateId = 'dateOfCalculationValue';
+
+    const dateOfDebtStringId = 'dateOfDebt';
+    const dateOfDebtValueId = 'dateOfDebtValue';
+
+    const txtDebtStringId = 'txtDebt';
+    const txtDebtValueId = 'txtDebtValue';
 
     $(function () {
-        initializeDateTime(debtDateStringId);
+        initializeDateTime(dateOfDebtStringId);
         initializeDateTime('dateOfCalculation');
     });
 
@@ -19,73 +26,124 @@
         });
     }
 
-    function stringToDate(dateString) {
-        dateString = dateString.split('/');
-        dateString = dateString[1] + '/' + dateString[0] + '/' + dateString[2];
+    function calculate() {
+        prepareDataForRequest();
+        data = JSON.stringify({
+            calculationDate: $('#' + calculationDateId).val(),
+            debts: debts
+        });
 
-        return new Date(dateString);
+        if (validateAllInputs && validateInputById(calculationDateId)) {
+            $.ajax({
+                type: 'POST',
+                data: data,
+                url: "/api/Interest",
+                contentType: "application/json",
+                dataType: 'json',
+                success: function (result) {
+                    $('#debt').text('worth now: ' + result);
+                },
+                error: function (err) {
+                    handleError(err);
+                }
+            });
+        }
     }
 
-    function calculate() {
-        $.ajax({
-            type: 'GET',
-            data: {
-                debt: $('#txtDebt').val(),
-                //debtDate: stringToDate($('#dateOfDebtValue').val()),
-                debtDate: $('#dateOfDebtValue').val(),
-                //calculationDate: stringToDate($('#dateOfCalculationValue').val())
-                calculationDate: $('#dateOfCalculationValue').val()
-            },
-            url: "/api/Interest",
-            contentType: "application/json",
-            success: function (result) {
-                $('#debt').text('worth now: ' + result);
-            },
-            error: function (err) {
-                var status = err.statusCode().status;
+    function handleError(err) {
+        var status = err.statusCode().status;
 
-                if (status == 400) {
-                    alert('Invalid input');
-                } else {
-                    alert('Something went wrong');
-                }
-            }
-        });
+        if (status == 400) {
+            alert('Invalid input');
+        } else {
+            alert('Something went wrong');
+        }
     }
 
     function addRow() {
-        // Copy the table row and clear the value of the input, then append the row to the end of the table
-        var debtRow = $("#debtRow").clone();
-                
-        // Clear all inputs and update id
-        debtRow.find("input").each(function () {
-            $(this).val('');
-            $(this).attr('id', $(this)[0].id + rows);
-        })
-            
-        debtRow.find('#' + debtDateStringId).attr('id', debtDateStringId + rows)
-        debtRow.attr('id', debtRow[0].id + rows);
-        debtRow.appendTo("#debts");
+        if (validateAllInputs()) {
+            // Copy the first debt row
+            var debtRow = $("#debtRow").clone();
 
-        initializeDateTime(debtDateStringId + rows);
-        rows++;
+            // Clear all inputs and update id
+            debtRow.find("input").each(function () {
+                $(this).val('');
+                $(this).attr('id', $(this)[0].id + rows);
+            })
+
+            debtRow.find('#' + dateOfDebtStringId).attr('id', dateOfDebtStringId + rows)
+            debtRow.attr('id', debtRow[0].id + rows);
+
+            debtRow.find('#' + txtDebtStringId).attr('id', txtDebtStringId + rows)
+            debtRow.attr('id', debtRow[0].id + rows);
+
+            debtRow.appendTo("#debts");
+
+            initializeDateTime(dateOfDebtStringId + rows);
+
+            rows++;
+        }
+    }
+
+    function prepareDataForRequest() {
+        addCalculation(null);
+
+        for (let i = 1; i < rows; i++) {
+            addCalculation(i);
+        }
+    }
+
+    function addCalculation(index) {
+        if (index === null) {
+            debts[$('#' + dateOfDebtValueId).val()] = $('#' + txtDebtValueId).val();
+        } else {
+            debts[$('#' + dateOfDebtValueId + index).val()] = $('#' + txtDebtValueId + index).val();
+        }
+    }
+
+    function validate(id) {
+        validateInputById(id, id.replace('Value', ''));
+    }
+
+    function validateInputById(inputId, inputDivId) {
+        if (document.getElementById(inputId).validity.valid) {
+            $('#' + inputDivId).removeClass('has-error');
+            return true;
+        } else {
+            $('#' + inputDivId).addClass('has-error');
+            return false;
+        }
+    }
+
+    function validateAllInputs() {
+        if (!validateInputById(dateOfDebtValueId, dateOfDebtStringId) || !validateInputById(txtDebtValueId, txtDebtStringId)) {
+            return false;
+        }
+
+        for (let i = 1; i < rows; i++) {
+            if (!validateInputById(dateOfDebtValueId + i, dateOfDebtStringId + i) || !validateInputById(txtDebtValueId + i, txtDebtStringId + i)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 </script>
 
 <div>
-    <div class="container">
+    <div class="container" data-toggle="validator" role="form">
         <div class="row">
             <div class="col-sm-6 form-group">
                 <label for="dateOfCalculation">Date to calculate for</label>
                 <div class='input-group date' id='dateOfCalculation' style="width: 315px;">
-                    <input type='text' id='dateOfCalculationValue' class="form-control" />
+                    <input type='text' id='dateOfCalculationValue' class="form-control" required />
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </span>
                 </div>
             </div>
             <div class="col-sm-6">
-                <br/>
+                <br />
                 <button class="btn btn-success glyphicon glyphicon-plus" onclick="addRow()"></button>
             </div>
         </div>
@@ -95,7 +153,7 @@
                 <div class="col-sm-6 form-group">
                     <label for="dateOfDebt">Date of debt</label>
                     <div class='input-group date' id='dateOfDebt' style="width: 315px;">
-                        <input type='text' id='dateOfDebtValue' class="form-control" />
+                        <input type='text' id='dateOfDebtValue' onchange="validate(this.id)" class="form-control" required />
                         <span class="input-group-addon">
                             <span class="glyphicon glyphicon-calendar"></span>
                         </span>
@@ -103,7 +161,9 @@
                 </div>
                 <div class="col-sm-6 form-group">
                     <label for="txtDebt">Debt</label>
-                    <input type="text" class="form-control" id="txtDebt" value="" />
+                    <div class='input-group' id='txtDebt'>
+                        <input type="number" step="any" onchange="validate(this.id)" class="form-control" id="txtDebtValue" value="" required />
+                    </div>
                 </div>
             </div>
         </div>

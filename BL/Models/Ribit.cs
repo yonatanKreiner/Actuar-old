@@ -16,9 +16,11 @@ namespace BL.Models
 
         public Ribit(DateTime date, double debt)
         {
+            ExcelReader.Instance.InitializeArgumentsForReading(ExcelReader.ExcelData.IncrementedRibit);
+
             Date = date;
             Debt = debt;
-            TomorrowAccumulativePrecentage = ExcelReader.GetDoubleValueFromExcel(ExcelReader.ExcelData.IncrementedRibit, Date.AddDays(1));
+            TomorrowAccumulativePrecentage = ExcelReader.Instance.GetDoubleValue(Date.AddDays(1));
             Difference = TomorrowAccumulativePrecentage * Debt - Debt;
         }
     }
